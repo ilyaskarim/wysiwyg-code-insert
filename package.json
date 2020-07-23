@@ -1,0 +1,33 @@
+{
+  "name": "wysiwyg-code-insert",
+  "version": "1.0.0",
+  "description": "Wysiwyg Code Insert plugin that will allow insertion of code templates in articles and blog posts.",
+  "main": "index.js",
+  "scripts": {
+    "less": "less-watch-compiler"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ilyaskarim/wysiwyg-code-insert.git"
+  },
+  "keywords": [
+    "wysiwyg",
+    "insert",
+    "code",
+    "template",
+    "php",
+    "js",
+    "sql",
+    "mysql",
+    "html"
+  ],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/ilyaskarim/wysiwyg-code-insert/issues"
+  },
+  "dependencies": {
+    "less-watch-compiler": "^1.14.1"
+  },
+  "homepage": "https://github.com/ilyaskarim/wysiwyg-code-insert#readme"
+}

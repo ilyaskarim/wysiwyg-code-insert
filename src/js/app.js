@@ -159,12 +159,15 @@ let wysiwygCodeInsert = {
         pre.classList.remove("code-insert-initialized");
         pre.classList.remove("wysiwyg-code-insert");
         pre.parentElement.removeChild(pre);
+        pre.style.marginBottom = "0px"
+        pre.style.removeProperty('margin-bottom');
       };
       saveIcon.onclick = () => {
         document.body.removeChild(div);
         pre.innerHTML = editor.getValue();
         pre.classList.remove("code-insert-initialized");
         pre.classList.remove("wysiwyg-code-insert");
+        pre.style.removeProperty('margin-bottom');
       };
       var rect = pre.getBoundingClientRect();
       var docEl = document.documentElement;
@@ -172,6 +175,7 @@ let wysiwygCodeInsert = {
       var rectTop = rect.top + window.pageYOffset - docEl.clientTop;
       document.body.appendChild(div);
       div.style.top = pre.clientHeight + rectTop + "px";
+      pre.style.marginBottom = div.clientHeight + 10 + 'px'
 
       const handleChange = () => {
         let preNew = document.querySelector("pre");
@@ -179,6 +183,7 @@ let wysiwygCodeInsert = {
         var rectTop = rect.top + window.pageYOffset - docEl.clientTop;
         setTimeout(() => {
           div.style.top = preNew.clientHeight + rectTop + "px";
+          pre.style.marginBottom = div.clientHeight + 10 + 'px'
         }, 1);
       };
 

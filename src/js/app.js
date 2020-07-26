@@ -1,10 +1,79 @@
 let wysiwygCodeInsert = {
+  currentCodeMirrorInstance: null,
+  currentPre: null,
+  currentToolbar: null,
   defaults: {
     mode: "xml",
-    theme: "ayu-mirage"
+    theme: "ayu-mirage",
+    themeURL: "https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.56.0/theme/__themeName__.css",
+    modeURL: "https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.56.0/mode/__mode__/__mode__.min.js",
   },
   options: {
     languageTypes: ["html", , "xml", "less", "css", "scss", "sass", "typescript", "javascript", "sql", "php", "python", "ruby", "java"],
+    themes: [
+      "3024-day",
+      "3024-night",
+      "abcdef",
+      "ambiance",
+      "ayu-dark",
+      "ayu-mirage",
+      "base16-dark",
+      "base16-light",
+      "bespin",
+      "blackboard",
+      "cobalt",
+      "colorforth",
+      "darcula",
+      "dracula",
+      "duotone-dark",
+      "duotone-light",
+      "eclipse",
+      "elegant",
+      "erlang-dark",
+      "gruvbox-dark",
+      "hopscotch",
+      "icecoder",
+      "idea",
+      "isotope",
+      "lesser-dark",
+      "liquibyte",
+      "lucario",
+      "material",
+      "material-darker",
+      "material-palenight",
+      "material-ocean",
+      "mbo",
+      "mdn-like",
+      "midnight",
+      "monokai",
+      "moxer",
+      "neat",
+      "neo",
+      "night",
+      "nord",
+      "oceanic-next",
+      "panda-syntax",
+      "paraiso-dark",
+      "paraiso-light",
+      "pastel-on-dark",
+      "railscasts",
+      "rubyblue",
+      "seti",
+      "shadowfox",
+      "solarized dark",
+      "solarized light",
+      "the-matrix",
+      "tomorrow-night-bright",
+      "tomorrow-night-eighties",
+      "ttcn",
+      "twilight",
+      "vibrant-ink",
+      "xq-dark",
+      "xq-light",
+      "yeti",
+      "yonce",
+      "zenburn",
+    ],
     html() {
       return `<div class="options-container">
     <div class="select-language">
@@ -12,7 +81,7 @@ let wysiwygCodeInsert = {
         <select class="language" type="text">
           <img src="https://image.flaticon.com/icons/svg/60/60995.svg" alt="" />
           ${this.languageTypes.map((c) => {
-            return `<option>${c}</option>`
+            return `<option>${c}</option>`;
           })}
         </select>
       </div>  
@@ -23,68 +92,9 @@ let wysiwygCodeInsert = {
         <select class="theme" type="text">
           <img src="https://image.flaticon.com/icons/svg/60/60995.svg" alt="" />
           <option hidden disabled selected value>Select Theme</option>
-          <option>3024-day</option>
-          <option>3024-night</option>
-          <option>abcdef</option>
-          <option>ambiance</option>
-          <option>ayu-dark</option>
-          <option selected >ayu-mirage</option>
-          <option>base16-dark</option>
-          <option>base16-light</option>
-          <option>bespin</option>
-          <option>blackboard</option>
-          <option>cobalt</option>
-          <option>colorforth</option>
-          <option>darcula</option>
-          <option>dracula</option>
-          <option>duotone-dark</option>
-          <option>duotone-light</option>
-          <option>eclipse</option>
-          <option>elegant</option>
-          <option>erlang-dark</option>
-          <option>gruvbox-dark</option>
-          <option>hopscotch</option>
-          <option>icecoder</option>
-          <option>idea</option>
-          <option>isotope</option>
-          <option>lesser-dark</option>
-          <option>liquibyte</option>
-          <option>lucario</option>
-          <option>material</option>
-          <option>material-darker</option>
-          <option>material-palenight</option>
-          <option>material-ocean</option>
-          <option>mbo</option>
-          <option>mdn-like</option>
-          <option>midnight</option>
-          <option>monokai</option>
-          <option>moxer</option>
-          <option>neat</option>
-          <option>neo</option>
-          <option>night</option>
-          <option>nord</option>
-          <option>oceanic-next</option>
-          <option>panda-syntax</option>
-          <option>paraiso-dark</option>
-          <option>paraiso-light</option>
-          <option>pastel-on-dark</option>
-          <option>railscasts</option>
-          <option>rubyblue</option>
-          <option>seti</option>
-          <option>shadowfox</option>
-          <option>solarized dark</option>
-          <option>solarized light</option>
-          <option>the-matrix</option>
-          <option>tomorrow-night-bright</option>
-          <option>tomorrow-night-eighties</option>
-          <option>ttcn</option>
-          <option>twilight</option>
-          <option>vibrant-ink</option>
-          <option>xq-dark</option>
-          <option>xq-light</option>
-          <option>yeti</option>
-          <option>yonce</option>
-          <option>zenburn</option>
+          ${this.themes.map((c) => {
+            return `<option>${c}</option>`;
+          })}
         </select>
       </div>
     </div>
@@ -111,18 +121,39 @@ let wysiwygCodeInsert = {
   },
   init(el) {
     let _this = this;
-
-    let pre = document.querySelector(el);
-    pre.onclick = () => {
-      _this.generateCodeMirror();
-    };
+    let pre = [...document.querySelectorAll(el)];
+    pre.forEach((preEl) => {
+      preEl.onclick = () => {
+        _this.generateCodeMirror(preEl);
+      };
+    });
   },
-  generateCodeMirror() {
-    let pre = document.querySelector("pre");
-    if (document.querySelector("pre").classList.contains("code-insert-initialized") === false) {
-      let val = document.querySelector("pre").innerHTML;
-      document.querySelector("pre").innerHTML = "";
-      editor = CodeMirror(document.querySelector("pre"), {
+  handleThemeChange(theme, editor, pre) {
+    let link = document.createElement("link");
+    link.rel = "stylesheet";
+    link.href = this.defaults.themeURL.replace("__themeName__", theme);
+    link.classList.add("wysiwygCodeInsert-theme-file");
+    link.onload = () => {
+      editor.setOption("theme", theme);
+    };
+
+    document.head.append(link);
+  },
+  handleModeChange(mode, editor) {
+    let script = document.createElement("script");
+    script.src = this.defaults.modeURL.replace("__mode__", mode);
+    script.src = script.src.replace("__mode__", mode);
+    script.onload = () => {
+      editor.setOption("mode", mode);
+    };
+    document.head.append(script);
+  },
+  generateCodeMirror(el) {
+    let pre = el;
+    if (pre.classList.contains("code-insert-initialized") === false) {
+      let val = pre.innerHTML;
+      pre.innerHTML = "";
+      editor = CodeMirror(pre, {
         mode: "javascript",
         theme: "ayu-mirage",
         height: "200px",
@@ -130,14 +161,26 @@ let wysiwygCodeInsert = {
         extraKeys: { "Ctrl-Space": "autocomplete" },
         value: val,
       });
-      editor.setSize("auto", "auto");
-      this.generateDropdown(editor);
+      // editor.setSize("auto", "auto");
+      this.generateDropdown(editor, el);
+      this.handleThemeChange("ayu-mirage", editor);
+      this.handleModeChange("javascript", editor);
+      pre.classList.add("code-insert-initialized");
+      pre.classList.add("wysiwyg-code-insert");
+      this.currentCodeMirrorInstance = editor;
+      this.currentPre = pre;
     }
-    document.querySelector("pre").classList.add("code-insert-initialized");
-    document.querySelector("pre").classList.add("wysiwyg-code-insert");
   },
-  generateDropdown(editor) {
-    let pre = document.querySelector("pre");
+  handleSave(div, editor, pre) {
+    document.body.removeChild(div);
+    pre.innerHTML = editor.getValue();
+    pre.classList.remove("code-insert-initialized");
+    pre.classList.remove("wysiwyg-code-insert");
+    pre.style.removeProperty("margin-bottom");
+  },
+  generateDropdown(editor, el) {
+    let _this = this;
+    let pre = el;
     if (pre.classList.contains("code-insert-initialized") === false) {
       let div = document.createElement("div");
       let html = this.options.html();
@@ -148,10 +191,12 @@ let wysiwygCodeInsert = {
       let languageSelection = div.querySelector("select.language");
       let themeSelection = div.querySelector("select.theme");
       languageSelection.onchange = (e) => {
-        editor.setOption("mode", e.target.options[e.target.selectedIndex].textContent);
+        let value = e.target.options[e.target.selectedIndex].textContent;
+        _this.handleModeChange(value, editor, pre);
       };
       themeSelection.onchange = (e) => {
-        editor.setOption("theme", e.target.options[e.target.selectedIndex].textContent);
+        let value = e.target.options[e.target.selectedIndex].textContent;
+        _this.handleThemeChange(value, editor, pre);
       };
       deleteIcon.onclick = () => {
         document.body.removeChild(div);
@@ -159,31 +204,30 @@ let wysiwygCodeInsert = {
         pre.classList.remove("code-insert-initialized");
         pre.classList.remove("wysiwyg-code-insert");
         pre.parentElement.removeChild(pre);
-        pre.style.marginBottom = "0px"
-        pre.style.removeProperty('margin-bottom');
+        pre.style.marginBottom = "0px";
+        pre.style.removeProperty("margin-bottom");
       };
       saveIcon.onclick = () => {
-        document.body.removeChild(div);
-        pre.innerHTML = editor.getValue();
-        pre.classList.remove("code-insert-initialized");
-        pre.classList.remove("wysiwyg-code-insert");
-        pre.style.removeProperty('margin-bottom');
+        this.handleSave(div, editor, pre);
       };
       var rect = pre.getBoundingClientRect();
       var docEl = document.documentElement;
 
       var rectTop = rect.top + window.pageYOffset - docEl.clientTop;
+      var rectLeft = rect.left + window.pageXOffset - docEl.clientLeft;
       document.body.appendChild(div);
       div.style.top = pre.clientHeight + rectTop + "px";
-      pre.style.marginBottom = div.clientHeight + 10 + 'px'
+      div.style.left = rectLeft + "px";
+      pre.style.marginBottom = div.clientHeight + 10 + "px";
+      this.currentToolbar = div;
 
       const handleChange = () => {
-        let preNew = document.querySelector("pre");
+        let preNew = el;
         var docEl = document.documentElement;
         var rectTop = rect.top + window.pageYOffset - docEl.clientTop;
         setTimeout(() => {
           div.style.top = preNew.clientHeight + rectTop + "px";
-          pre.style.marginBottom = div.clientHeight + 10 + 'px'
+          pre.style.marginBottom = div.clientHeight + 10 + "px";
         }, 1);
       };
 
